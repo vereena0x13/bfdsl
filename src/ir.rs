@@ -51,25 +51,23 @@ pub fn from_lua(lua_ir: LuaTable) -> Vec<Insn> {
     result
 }
 
-// TODO: clean this up
-pub fn print(ir: Vec<Insn>) {
+pub fn ir_to_string(ir: Vec<Insn>) -> String {
+    let mut result = String::new();
     let mut level = 0;
     for insn in ir {
+        result.push_str("    ".repeat(level).as_str());
+        if let Insn::Open = insn { level += 1 }
         match insn {
-            Insn::Open => {
-                print!("{}", "    ".repeat(level));
-                println!("{}", insn);
-                level += 1;
-            },
-            Insn::Close => {
-                level -= 1;
-                print!("{}", "    ".repeat(level));
-                println!("{}", insn);
-            },
-            _ => {
-                print!("{}", "    ".repeat(level));
-                println!("{}", insn);
-            }
+            Insn::Adjust(n) => result.push_str(&format!("adjust {}", n)),
+            Insn::Select(n) => result.push_str(&format!("select {}", n)),
+            Insn::Read(n)   => result.push_str(&format!("read {}", n)),
+            Insn::Write(n)  => result.push_str(&format!("write {}", n)),
+            Insn::Open      => result.push_str("open"),
+            Insn::Close     => result.push_str("close"),
+            Insn::Set(x)    => result.push_str(&format!("set {}", x)),
         }
+        if let Insn::Close = insn { level -= 1}
+        result.push('\n');
     }
+    result
 }
