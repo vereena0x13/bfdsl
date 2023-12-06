@@ -57,6 +57,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 
 [[package]]
+name = "bfdsl"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "mlua",
+]
+
+[[package]]
 name = "bitflags"
 version = "2.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -164,14 +172,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7c26d4af78361e025a3d03a2b964cd1592aff7495f4d4f7947218c084c6fdca8"
 dependencies = [
  "cc",
-]
-
-[[package]]
-name = "luadsl"
-version = "0.1.0"
-dependencies = [
- "clap",
- "mlua",
 ]
 
 [[package]]

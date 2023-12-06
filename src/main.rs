@@ -1,6 +1,14 @@
 use clap::{command, Arg};
 use mlua::prelude::*;
-use std::{fs, process};
+use std::fs;
+use bfdsl::ir;
+
+
+const MIDDLECLASS_LUA: &str = include_str!("../lib/middleclass/middleclass.lua");
+const IR_LUA:          &str = include_str!("../lib/ir.lua");
+const CODEGEN_LUA:     &str = include_str!("../lib/codegen.lua");
+const MAIN_LUA:        &str = include_str!("../lib/main.lua");
+
 
 fn main() {
     let matches = command!()
@@ -9,24 +17,24 @@ fn main() {
 
 
     let file = matches.get_one::<String>("file").unwrap();
-    let code = match fs::read_to_string(file) {
-        Ok(code) => code,
-        Err(_) => {
-            println!("Unable to read file `{file}`");
-            process::exit(1)
-        }
-    };
+    let path = fs::canonicalize(file).unwrap();
 
 
-    let lua = unsafe { Lua::unsafe_new_with(LuaStdLib::ALL, LuaOptions::new()) }; // NOTE: unsafe :( but we use the debug module, so alas.
+    let lua = unsafe { Lua::unsafe_new_with(LuaStdLib::ALL, LuaOptions::new()) };
     let globals = lua.globals();
 
     
-    let middleclass = lua.load(include_str!("../lib/middleclass/middleclass.lua")).eval::<LuaTable>().unwrap();
+    let middleclass = lua.load(MIDDLECLASS_LUA).eval::<LuaTable>().unwrap();
     globals.set("class", middleclass).unwrap();
 
 
-    lua.load(include_str!("../lib/init.lua")).exec().unwrap();
+    lua.load(IR_LUA).exec().unwrap();
+    lua.load(CODEGEN_LUA).exec().unwrap();
 
-    lua.load(code).exec().unwrap();
+
+    let base_path = path.parent().unwrap().to_str().unwrap();
+    let file_name = path.file_name().unwrap().to_str().unwrap();
+    let lua_ir = lua.load(MAIN_LUA).call::<_, LuaTable>((base_path, file_name)).unwrap();
+    let ir = ir::from_lua(lua_ir);
+    println!("{:?}", ir);
 }
