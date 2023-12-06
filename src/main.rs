@@ -5,9 +5,9 @@ use bfdsl::ir;
 
 
 const MIDDLECLASS_LUA: &str = include_str!("../lib/middleclass/middleclass.lua");
-const IR_LUA:          &str = include_str!("../lib/ir.lua");
-const CODEGEN_LUA:     &str = include_str!("../lib/codegen.lua");
-const MAIN_LUA:        &str = include_str!("../lib/main.lua");
+const IR_LUA:          &str = include_str!("lua/ir.lua");
+const CODEGEN_LUA:     &str = include_str!("lua/codegen.lua");
+const MAIN_LUA:        &str = include_str!("lua/main.lua");
 
 
 fn main() {
