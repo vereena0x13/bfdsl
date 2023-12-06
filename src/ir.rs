@@ -51,7 +51,7 @@ pub fn from_lua(lua_ir: LuaTable) -> Vec<Insn> {
     result
 }
 
-pub fn ir_to_string(ir: Vec<Insn>) -> String {
+pub fn to_string(ir: Vec<Insn>) -> String {
     let mut result = String::new();
     let mut level = 0;
     for insn in ir {

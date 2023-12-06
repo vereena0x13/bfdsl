@@ -39,5 +39,5 @@ fn main() {
     let lua_ir = lua.load(MAIN_LUA).call::<_, LuaTable>((base_path, file_name)).unwrap();
     let ir = ir::from_lua(lua_ir);
     
-    print!("{}", ir::ir_to_string(ir));
+    print!("{}", ir::to_string(ir));
 }
