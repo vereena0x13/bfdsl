@@ -5,6 +5,7 @@ use bfdsl::ir;
 
 
 const MIDDLECLASS_LUA: &str = include_str!("../lib/middleclass/middleclass.lua");
+const UTIL_LUA:        &str = include_str!("lua/util.lua");
 const IR_LUA:          &str = include_str!("lua/ir.lua");
 const CODEGEN_LUA:     &str = include_str!("lua/codegen.lua");
 const MAIN_LUA:        &str = include_str!("lua/main.lua");
@@ -28,8 +29,9 @@ fn main() {
     globals.set("class", middleclass).unwrap();
 
 
-    lua.load(IR_LUA).exec().unwrap();
-    lua.load(CODEGEN_LUA).exec().unwrap();
+    lua.load(UTIL_LUA).set_name("util.lua").exec().unwrap();
+    lua.load(IR_LUA).set_name("ir.lua").exec().unwrap();
+    lua.load(CODEGEN_LUA).set_name("codegen.lua").exec().unwrap();
 
 
     let base_path = path.parent().unwrap().to_str().unwrap();

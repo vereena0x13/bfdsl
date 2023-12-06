@@ -1,3 +1,11 @@
-for k, v in pairs(_G) do
-    print(k)
-end
+set(21)
+right()
+open()
+    dec()
+    right()
+    inc(2)
+    left()
+close()
+right()
+inc(23)
+write()
