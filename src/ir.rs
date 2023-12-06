@@ -1,3 +1,5 @@
+use std::fmt;
+
 use mlua::prelude::LuaTable;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -9,6 +11,20 @@ pub enum Insn {
     Open,
     Close,
     Set(u32)
+}
+
+impl fmt::Display for Insn {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Insn::Adjust(n) => write!(f, "adjust {}", n),
+            Insn::Select(n) => write!(f, "select {}", n),
+            Insn::Read(n)   => write!(f, "read {}", n),
+            Insn::Write(n)  => write!(f, "write {}", n),
+            Insn::Open      => write!(f, "open"),
+            Insn::Close     => write!(f, "close"),
+            Insn::Set(n)    => write!(f, "set {}", n)
+        }
+    }    
 }
 
 pub fn from_lua(lua_ir: LuaTable) -> Vec<Insn> {
@@ -33,4 +49,27 @@ pub fn from_lua(lua_ir: LuaTable) -> Vec<Insn> {
     }
 
     result
+}
+
+// TODO: clean this up
+pub fn print(ir: Vec<Insn>) {
+    let mut level = 0;
+    for insn in ir {
+        match insn {
+            Insn::Open => {
+                print!("{}", "    ".repeat(level));
+                println!("{}", insn);
+                level += 1;
+            },
+            Insn::Close => {
+                level -= 1;
+                print!("{}", "    ".repeat(level));
+                println!("{}", insn);
+            },
+            _ => {
+                print!("{}", "    ".repeat(level));
+                println!("{}", insn);
+            }
+        }
+    }
 }

@@ -36,5 +36,6 @@ fn main() {
     let file_name = path.file_name().unwrap().to_str().unwrap();
     let lua_ir = lua.load(MAIN_LUA).call::<_, LuaTable>((base_path, file_name)).unwrap();
     let ir = ir::from_lua(lua_ir);
-    println!("{:?}", ir);
+    
+    ir::print(ir);
 }
