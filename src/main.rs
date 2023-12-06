@@ -5,10 +5,16 @@ use bfdsl::ir;
 
 
 const MIDDLECLASS_LUA: &str = include_str!("../lib/middleclass/middleclass.lua");
-const UTIL_LUA:        &str = include_str!("lua/util.lua");
-const IR_LUA:          &str = include_str!("lua/ir.lua");
-const CODEGEN_LUA:     &str = include_str!("lua/codegen.lua");
 const MAIN_LUA:        &str = include_str!("lua/main.lua");
+
+
+macro_rules! include_lua {
+    ( $lua:expr, $($name:literal),* ) => {
+        $(
+            $lua.load(include_str!(concat!("lua/", $name))).set_name($name).exec().unwrap();
+        )*
+    }
+}
 
 
 fn main() {
@@ -29,9 +35,12 @@ fn main() {
     globals.set("class", middleclass).unwrap();
 
 
-    lua.load(UTIL_LUA).set_name("util.lua").exec().unwrap();
-    lua.load(IR_LUA).set_name("ir.lua").exec().unwrap();
-    lua.load(CODEGEN_LUA).set_name("codegen.lua").exec().unwrap();
+    include_lua!(
+        lua,
+        "util.lua",
+        "ir.lua",
+        "codegen.lua"
+    );
 
 
     let base_path = path.parent().unwrap().to_str().unwrap();
