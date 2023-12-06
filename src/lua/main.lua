@@ -14,6 +14,7 @@ end
 
 local gen = CodeGen()
 
+
 local fenv = {
     adjust = function(...) gen:adjust(...) end,
     inc    = function(...) gen:inc(...) end,
@@ -46,12 +47,38 @@ local fenv = {
 }
 fenv._G = fenv
 
+
+local included = {}
+fenv.include = function(file)
+    local path = base_path .. SEPARATOR .. file
+
+	if included[path] then
+		return
+	end
+	included[path] = true
+
+	local func, err = loadfile(path)
+
+	if not func then
+		error(err)
+	end
+
+	setfenv(func, fenv)
+	local status, ret, err = xpcall(func, debug.traceback)
+	if not status or err then
+		error(ret)
+	end
+end
+
+
 setfenv(func, fenv)
 
 
 local status, ret, err = xpcall(func, debug.traceback)
+-- TODO: handle this properly
 if not status then
     print(ret)
 end
+
 
 return gen.buffer

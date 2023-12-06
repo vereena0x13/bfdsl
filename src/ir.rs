@@ -30,8 +30,8 @@ impl fmt::Display for Insn {
 pub fn from_lua(lua_ir: LuaTable) -> Vec<Insn> {
     let mut result = Vec::new();
 
-    for i in 1..(lua_ir.len().unwrap() + 1) {
-        let lua_insn = lua_ir.get::<_, LuaTable>(i).unwrap();
+    for lua_insn in lua_ir.sequence_values::<LuaTable>() {
+        let lua_insn = lua_insn.unwrap();
         let opcode = lua_insn.get::<_, u32>("opcode").unwrap();
         
         let insn = match opcode {
