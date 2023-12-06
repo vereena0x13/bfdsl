@@ -1,0 +1,3 @@
+[submodule "lib/middleclass"]
+	path = lib/middleclass
+	url = git@github.com:vereena0x13/middleclass.git
