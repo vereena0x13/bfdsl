@@ -74,4 +74,4 @@ if not status then
 end
 
 
-return gen.buffer
+return gen.buffer, gen.allocator.blocks

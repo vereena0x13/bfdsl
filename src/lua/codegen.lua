@@ -104,6 +104,9 @@ end
 
 function CodeGen:to(blk)
     assert(self.allocator:is_allocated(blk))
+    
     self.current_block = blk
     self.pointer_offset = 0
+    
+    table.insert(self.buffer, Insn(OpCode.TO, blk.id))
 end

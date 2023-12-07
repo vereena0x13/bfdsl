@@ -1,6 +1,7 @@
 Block = class "Block"
 
-function Block:initialize(size)
+function Block:initialize(id, size)
+    self.id = id
     self.size = size
     self.uses = {}
     self.active_index = -1
@@ -15,6 +16,7 @@ end
 Allocator = class "Allocator"
 
 function Allocator:initialize()
+    self.blocks = {}
     self.free_blocks = {}
     self.active_blocks = {}
 end
@@ -37,7 +39,9 @@ function Allocator:alloc(n)
     if #free > 0 then
         block = table.remove(free)
     else
-        block = Block(n)
+        local id = #self.blocks
+        block = Block(id, n)
+        table.insert(self.blocks, block)
     end
 
     local active = get_blocks(self.active_blocks, n)

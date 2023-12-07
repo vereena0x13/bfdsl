@@ -2,6 +2,7 @@ use std::fmt;
 
 use mlua::prelude::LuaTable;
 
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Insn {
     Adjust(i32),
@@ -24,12 +25,12 @@ impl fmt::Display for Insn {
             Insn::Open      => write!(f, "open"),
             Insn::Close     => write!(f, "close"),
             Insn::Set(n)    => write!(f, "set {}", n),
-            Insn::To(blkid) => write!(f, "to blk_{}", blkid),
+            Insn::To(blkid) => write!(f, "to <{}>", blkid),
         }
     }    
 }
 
-pub fn from_lua(lua_ir: LuaTable) -> Vec<Insn> {
+pub fn insns_from_lua(lua_ir: LuaTable) -> Vec<Insn> {
     let mut result = Vec::new();
 
     for lua_insn in lua_ir.sequence_values::<LuaTable>() {
@@ -54,15 +55,40 @@ pub fn from_lua(lua_ir: LuaTable) -> Vec<Insn> {
     result
 }
 
-pub fn to_string(ir: Vec<Insn>) -> String {
+pub fn insns_to_string(ir: &Vec<Insn>) -> String {
     let mut result = String::new();
     let mut level = 0;
     for insn in ir {
+        if let Insn::Close = insn { level -= 1 }
         result.push_str("    ".repeat(level).as_str());
         if let Insn::Open = insn { level += 1 }
         result.push_str(insn.to_string().as_str());
-        if let Insn::Close = insn { level -= 1}
         result.push('\n');
     }
+    result
+}
+
+
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Block {
+    pub id: u32,
+    pub size: u32,
+    pub uses: Vec<u32>,
+    pub active_index: i32
+}
+
+pub fn blocks_from_lua(lua_blocks: LuaTable) -> Vec<Block> {
+    let mut result = Vec::new();
+
+    for lua_block in lua_blocks.sequence_values::<LuaTable>() {
+        let lua_block = lua_block.unwrap();
+        let id = lua_block.get::<_, u32>("id").unwrap();
+        let size = lua_block.get::<_, u32>("size").unwrap();
+        let uses = Vec::<u32>::new(); // TODO
+        let active_index = lua_block.get::<_, i32>("active_index").unwrap();
+        result.push(Block { id, size, uses, active_index });
+    }
+
     result
 }

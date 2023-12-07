@@ -1,15 +1,3 @@
--- set(21)
--- right()
--- open()
---     dec()
---     right()
---     inc(2)
---     left()
--- close()
--- right()
--- inc(23)
--- write()
-
 local x = alloc(1)
 local y = alloc(1)
 
