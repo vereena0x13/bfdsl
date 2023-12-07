@@ -59,7 +59,15 @@ fenv.include = function(file)
 end
 
 
-local codegen_fns = { "adjust", "inc", "dec", "select", "right", "left", "read", "write", "open", "close", "set", "clear", "alloc", "free", "to" }
+local codegen_fns = {
+	"adjust", "inc", "dec",
+	"select", "right", "left",
+	"read", "write",
+	"open", "close",
+	"set", "clear",
+	"alloc", "free", "allocated",
+	"to"
+}
 for _, fn in ipairs(codegen_fns) do
 	fenv[fn] = function(...) return gen[fn](gen, ...) end
 end

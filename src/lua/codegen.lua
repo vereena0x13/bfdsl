@@ -93,12 +93,23 @@ end
 
 
 
-function CodeGen:alloc(...)
-    return self.allocator:alloc(...)
+function CodeGen:alloc(n)
+    n = n or 1
+    local xs = {}
+    for i = 1, n do
+        xs[#xs+1] = self.allocator:alloc(1)
+    end
+    return unpack(xs)
 end
 
 function CodeGen:free(...)
-    return self.allocator:free(...)
+    for _, blk in ipairs({...}) do
+        self.allocator:free(blk)
+    end
+end
+
+function CodeGen:allocated(...)
+    return self.allocator:is_allocated(...)
 end
 
 
