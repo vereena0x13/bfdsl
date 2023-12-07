@@ -1,0 +1,19 @@
+ - memory allocator
+   - ideally we'd keep the same user interface as we have in the old dsl (FrainBuck); alloc/free.
+   - must result in a list of memory blocks. these blocks have no absolute location, and have a static size.
+   - must also track every usage of every memory block. perhaps memory blocks just store a list of uses?
+     a use would just be a location in the code that the block is used from
+       - just now realizing... that since we're using an IR, these "locations" aren't the same as actual
+         code positions in the final brainfuck we'll generate... so we'll have to deal with that ig.
+         maybe that's not hard though, prolly?
+ - move lua code to rust
+   - for example, the memory allocator and codegen should probably be written in rust, eventually.
+     but we're gonna write it in lua first.
+ - unsafe code
+   - will basically work the same way as it worked in FrainBuck
+     how does this interact w/ the memory system though? or, does it? maybe it's just "fine"?
+ - no-opt code (extremely unimportant rn)
+   - perhaps we'll eventually want to be able to disable optimizations for sections of code,
+     although tbh the only use for this i can think of would be if we were running brainfuck
+     on hardware -- i.e. don't eliminate "redundant" writes because in reality those writes
+     are to some MMIO device that will respond to each one, so they're not actually redundant.

@@ -5,7 +5,8 @@ OpCode = {
     WRITE  = 3,
     OPEN   = 4,
     CLOSE  = 5,
-    SET    = 6
+    SET    = 6,
+    TO     = 7,
 }
 
 

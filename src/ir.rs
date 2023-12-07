@@ -10,7 +10,8 @@ pub enum Insn {
     Write(u32),
     Open,
     Close,
-    Set(u32)
+    Set(u32),
+    To(u32)
 }
 
 impl fmt::Display for Insn {
@@ -22,7 +23,8 @@ impl fmt::Display for Insn {
             Insn::Write(n)  => write!(f, "write {}", n),
             Insn::Open      => write!(f, "open"),
             Insn::Close     => write!(f, "close"),
-            Insn::Set(n)    => write!(f, "set {}", n)
+            Insn::Set(n)    => write!(f, "set {}", n),
+            Insn::To(blkid) => write!(f, "to blk_{}", blkid),
         }
     }    
 }
@@ -42,6 +44,7 @@ pub fn from_lua(lua_ir: LuaTable) -> Vec<Insn> {
             4 => Insn::Open,
             5 => Insn::Close,
             6 => Insn::Set(lua_insn.get::<_, i32>("operand").unwrap() as u32),
+            7 => Insn::To(lua_insn.get::<_, i32>("operand").unwrap() as u32),
             _ => panic!()
         };
 
@@ -57,15 +60,7 @@ pub fn to_string(ir: Vec<Insn>) -> String {
     for insn in ir {
         result.push_str("    ".repeat(level).as_str());
         if let Insn::Open = insn { level += 1 }
-        match insn {
-            Insn::Adjust(n) => result.push_str(&format!("adjust {}", n)),
-            Insn::Select(n) => result.push_str(&format!("select {}", n)),
-            Insn::Read(n)   => result.push_str(&format!("read {}", n)),
-            Insn::Write(n)  => result.push_str(&format!("write {}", n)),
-            Insn::Open      => result.push_str("open"),
-            Insn::Close     => result.push_str("close"),
-            Insn::Set(x)    => result.push_str(&format!("set {}", x)),
-        }
+        result.push_str(insn.to_string().as_str());
         if let Insn::Close = insn { level -= 1}
         result.push('\n');
     }

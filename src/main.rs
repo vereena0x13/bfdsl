@@ -39,6 +39,7 @@ fn main() {
         lua,
         "util.lua",
         "ir.lua",
+        "alloc.lua",
         "codegen.lua"
     );
 
