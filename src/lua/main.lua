@@ -16,21 +16,6 @@ local gen = CodeGen()
 
 
 local fenv = {
-    adjust = function(...) return gen:adjust(...) end,
-    inc    = function(...) return gen:inc(...) end,
-    dec    = function(...) return gen:dec(...) end,
-    select = function(...) return gen:select(...) end,
-    right  = function(...) return gen:right(...) end,
-    left   = function(...) return gen:left(...) end,
-    read   = function(...) return gen:read(...) end,
-    write  = function(...) return gen:write(...) end,
-    open   = function(...) return gen:open(...) end,
-    close  = function(...) return gen:close(...) end,
-    set    = function(...) return gen:set(...) end,
-    clear  = function(...) return gen:clear(...) end,
-	alloc  = function(...) return gen:alloc(...) end,
-	free   = function(...) return gen:free(...) end,
-	to     = function(...) return gen:to(...) end,
     string = _G.string,
 	math = _G.math,
 	table = _G.table,
@@ -73,6 +58,11 @@ fenv.include = function(file)
 	end
 end
 
+
+local codegen_fns = { "adjust", "inc", "dec", "select", "right", "left", "read", "write", "open", "close", "set", "clear", "alloc", "free", "to" }
+for _, fn in ipairs(codegen_fns) do
+	fenv[fn] = function(...) return gen[fn](gen, ...) end
+end
 
 setfenv(func, fenv)
 
