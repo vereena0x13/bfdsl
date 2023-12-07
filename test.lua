@@ -69,7 +69,8 @@ function if_then_else(cond, t, f)
 
 	local tmp = alloc()
 
-	set(tmp, 1)
+	to(tmp)
+    set(1)
 
 	to(cond)
 	open()
@@ -136,7 +137,8 @@ function bnot(r, a)
 	assert(allocated(r))
 	assert(allocated(a))
 
-	set(r, 1)
+	to(r)
+    set(1)
 	if_then(a, function()
 		to(r)
 		dec()		
@@ -441,14 +443,3 @@ function printCell(a)
 end
 
 
-local x = alloc()
-local y = alloc()
-
-to(x) set(65)
-
-printCell(x)
-
-to(y) set(66) write()
-
-
-to(y) set(10) write()

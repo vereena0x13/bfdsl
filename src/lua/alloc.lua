@@ -4,11 +4,10 @@ function Block:initialize(id, size)
     self.id = id
     self.size = size
     self.uses = {}
-    self.active_index = -1
 end
 
 function Block:__tostring()
-    return "Block(" .. tostring(self.size) .. ")"
+    return "Block(" .. tostring(self.id) .. ", " .. tostring(self.size) .. ")"
 end
 
 
@@ -28,8 +27,11 @@ local function get_blocks(blklist, size)
     return blocks
 end
 
-local function corrupt_block_error(blk, active)
-    error("corrupt block: " .. tostring(blk.active_index) .. "; " .. tostring(blk) .. " != " .. tostring(active[blk.active_index]))
+local function find_block(blklist, blk)
+    for i, v in ipairs(blklist) do
+        if v == blk then return i end
+    end
+    return -1
 end
 
 function Allocator:alloc(n)
@@ -46,33 +48,24 @@ function Allocator:alloc(n)
 
     local active = get_blocks(self.active_blocks, n)
     table.insert(active, block)
-    block.active_index = #active
 
     return block
 end
 
 function Allocator:free(blk)
     local active = get_blocks(self.active_blocks, blk.size)
-    
-    if active[blk.active_index] ~= blk then
-        corrupt_block_error(blk, active)
-    end
+    local index = find_block(active, blk)
 
-    assert(table.remove(active, blk.active_index) == blk)
+    assert(index ~= -1) -- TODO
+
+    assert(table.remove(active, index) == blk)
 
     local free = get_blocks(self.free_blocks, blk.size)
     table.insert(free, blk)
-
-    blk.active_index = -1
 end
 
 function Allocator:is_allocated(blk)
-    if blk.active_index == -1 then return false end
-
     local active = get_blocks(self.active_blocks, blk.size)
-    if active[blk.active_index] ~= blk then
-        corrupt_block_error(blk, active)
-    end
-
-    return true
+    local index = find_block(active, blk)
+    return index ~= -1
 end

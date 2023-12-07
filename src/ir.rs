@@ -75,7 +75,6 @@ pub struct Block {
     pub id: u32,
     pub size: u32,
     pub uses: Vec<u32>,
-    pub active_index: i32
 }
 
 pub fn blocks_from_lua(lua_blocks: LuaTable) -> Vec<Block> {
@@ -86,8 +85,7 @@ pub fn blocks_from_lua(lua_blocks: LuaTable) -> Vec<Block> {
         let id = lua_block.get::<_, u32>("id").unwrap();
         let size = lua_block.get::<_, u32>("size").unwrap();
         let uses = Vec::<u32>::new(); // TODO
-        let active_index = lua_block.get::<_, i32>("active_index").unwrap();
-        result.push(Block { id, size, uses, active_index });
+        result.push(Block { id, size, uses });
     }
 
     result

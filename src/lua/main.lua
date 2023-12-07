@@ -65,7 +65,7 @@ local codegen_fns = {
 	"read", "write",
 	"open", "close",
 	"set", "clear",
-	"alloc", "free", "allocated",
+	"alloc", "alloc_block", "free", "allocated",
 	"to"
 }
 for _, fn in ipairs(codegen_fns) do

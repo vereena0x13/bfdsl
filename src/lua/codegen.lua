@@ -39,6 +39,12 @@ function CodeGen:dec(n) self:adjust(-math.abs(n or 1)) end
 function CodeGen:select(n)
     assert_is_int(n)
     check_current_block(self)
+
+    self.pointer_offset = self.pointer_offset + n
+    if self.pointer_offset < 0 or self.pointer_offset >= self.current_block.size then
+        error("out of bounds of current block (" .. tostring(self.current_block) .. ")")
+    end
+
     if self.loop then self.loop.offset = self.loop.offset + n end
     table.insert(self.buffer, Insn(OpCode.SELECT, n))
 end
@@ -92,12 +98,19 @@ function CodeGen:clear()
 end
 
 
-
 function CodeGen:alloc(n)
     n = n or 1
     local xs = {}
     for i = 1, n do
         xs[#xs+1] = self.allocator:alloc(1)
+    end
+    return unpack(xs)
+end
+
+function CodeGen:alloc_block(...)
+    local xs = {}
+    for _, v in ipairs({...}) do
+        xs[#xs+1] = self.allocator:alloc(v)
     end
     return unpack(xs)
 end
