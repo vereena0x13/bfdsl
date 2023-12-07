@@ -2,8 +2,6 @@ function move(dst, src)
 	assert(allocated(src))
 	assert(allocated(dst))
 
-    comment("move " .. tostring(src) .. " to " .. tostring(dst))
-
 	to(dst)
 	clear()
 	to(src)
@@ -14,15 +12,11 @@ function move(dst, src)
 		to(src)
 	close()
 	to(dst)
-
-    comment ";"
 end
 
 function copy(dst, src)
 	assert(allocated(src))
 	assert(allocated(dst))
-
-    comment("copy " .. tostring(src) .. " to " .. tostring(dst))
 
 	local tmp = alloc()
 
@@ -41,8 +35,6 @@ function copy(dst, src)
 	move(src, tmp) 
 	free(tmp)
 	to(dst)
-
-    comment ";"
 end
 
 function swap(a, b)
@@ -486,8 +478,6 @@ function Array:set(idx, val)
     assert(allocated(idx))
     assert(allocated(val))
 
-    comment("set " .. tostring(idx) .. " to " .. tostring(val))
-
     local index = Ref(self.pointer, 1)
     local data = Ref(self.pointer, 2)
     
@@ -521,11 +511,9 @@ function Array:set(idx, val)
         emit("<<<<[->>>>+<<<<]")
         emit(">>>")
     close()
-    emit("<<")
+    emit("<<<")
 
-    at(index)
-
-    comment ";"
+    at(self.pointer)
 end
 
 function Array:get(idx, val)
@@ -565,39 +553,228 @@ function Array:get(idx, val)
         emit("<<<<[->>>>+<<<<]")
         emit(">>>")
     close()
-    emit("<<")
+    emit("<<<")
 
-    at(index)
+    at(self.pointer)
 
     move(val, data)
 end
 
 
 
-local arr = Array(4)
 
-local i, x = alloc(2)
 
-to(i) set(0)
-to(x) set(1)
-arr:set(i, x)
+local function dbg(c)
+    local t = alloc()
+    for i = 1, c:len() do
+        to(t) 
+        set(string.byte(c:sub(i, i)))
+        write(1)
+    end
+    free(t)
+end
 
---to(i) set(1)
---to(x) set(2)
---arr:set(i, x)
+
+local sp, spmax = alloc(2)
+local stack = Array(4)
+
+local function push(x)
+    if type(x) == "number" then
+        local t = alloc()
+        to(t)
+        set(x)
+        push(t)
+        free(t)
+        return
+    end
+
+    local t1, t2 = alloc(2)
+    copy(t1, sp)
+    copy(t2, x)
+    
+    stack:set(sp, x)
+    to(sp)
+    inc()
+
+    local t3 = alloc()
+    copy(t2, sp)
+    copy(t3, spmax)
+    gt(t1, t2, t3)
+    if_then(t1, function()
+        copy(spmax, sp)
+    end)
+
+    free(t1, t2, t3)
+end
+
+local function pop()
+    to(sp)
+    dec()
+    local t1, r = alloc(2)
+    copy(t1, sp)
+    stack:get(t1, r)
+    free(t1)
+    to(r)
+    return r
+end
 
 --[[
-for a = 0, 3 do
-    to(i) set(a)
-    to(x) set(a + 1)
-    arr:set(i, x)
+
+-- TODO: move nip (and ip ig?) into gen
+-- by making the `a` functions return what
+-- to set the nip to.
+--              vereena0x13, 12-05-23
+local ip, nip = alloc(2)
+to(ip) set(1)
+
+-- NOTE TODO: Switch this to binary search?
+-- Actually, I just realized that using
+-- if_then to implement this rather than
+-- if_then_else is actually much less efficient
+-- (er, it'll be slower) -- obvious in hindsight.
+-- By not using if_then_else, we guarantee that
+-- in each iteration of the main loop, we will
+-- always compare `ip` to each code fragment index
+-- _even after we've already found the correct
+-- fragment for this loop iteration_.
+-- But anyway; longer-term it would probably make
+-- sense to switch to a binary search tree of
+-- if_then_else, etc.
+-- Unless someone knows a better way that can
+-- be implemented in _brainfuck_ (aka. hell).
+--              vereena0x13, 6-05-21
+local function gen(a)
+    local t1, t2, ip2, sr, t3 = alloc(5)
+    to(ip)
+    open()
+        to(sr) set(1)
+        for i = 1, #a do
+            copy(t3, sr)
+            if_then(t3, function()
+                to(t1) set(i)
+                copy(ip2, ip)
+                eq(t2, t1, ip2)
+                if_then(t2, function()
+                    to(sr) set(0)
+                    a[i]()
+                end)
+            end)
+        end
+        move(ip, nip)
+    close()
+    free(t1, t2, ip2, sr, t3)
 end
+
+gen({
+    function() -- 1
+        dbg("IP: 1\n")
+        push(2) -- IP: 2
+        push(4) -- x
+        to(nip) set(3) -- fib(x)
+    end,
+    function() -- 2
+        dbg("IP: 2\n")
+        local t = pop()
+        dbg("x: ")
+        printCell(t)
+        to(nip) set(0)
+        free(t)
+    end,
+    function() -- 3
+        dbg("IP: 3\n")
+        local x = pop()
+        local rip = pop()
+        local t1, t2 = alloc(2)
+
+        copy(t1, x)
+        bnot(t2, t1)
+        if_then_else(t2, function()
+            -- x == 0; return 0
+            push(0)
+            move(nip, rip)
+        end, function()
+            copy(t1, x)
+            dec()
+            bnot(t2, t1)
+            if_then_else(t2, function()
+                -- x == 1; return 1
+                push(1)
+                move(nip, rip)
+            end, function()
+                -- n > 1; return fib(x - 1) + fib(x - 2)
+                push(rip)
+
+                copy(t1, x)
+                dec()
+                push(t1)
+
+                copy(t1, x)
+                dec(2)
+                push(t1)
+
+                to(nip) set(4) -- IP: 4
+            end)
+        end)
+
+        free(x, rip, t1, t2)
+    end,
+    function() -- 4
+        dbg("IP: 4\n")
+        local x = pop()
+        push(5) -- IP: 5
+        push(x)
+        to(nip) set(3) -- IP: 3 (fib(x2))
+        free(x)
+    end,
+    function() -- 5
+        dbg("IP: 5\n")
+        local r = pop()
+        local x = pop()
+        push(r)
+        push(6) -- IP: 6
+        push(x)
+        to(nip) set(3) -- IP: 3 (fib(x1))
+        free(r, x)
+    end,
+    function() -- 6
+        dbg("IP: 6\n")
+        local x1 = pop()
+        local x2 = pop()
+        local rip = pop()
+
+        add(x1, x2)
+        push(x1)
+
+        move(nip, rip)
+
+        free(x1, x2, rip)
+    end
+})
+
+
+dbg("\nspmax: ")
+printCell(spmax)
+dbg("\n")
+
 ]]
 
+
+push(1)
+push(2)
+
+local t = alloc()
+to(t) set(3)
+push(t)
+
 --[[
-for a = 3, 0 do
-    to(i) set(a)
-    arr:get(i, x)
-    printCell(x)
-end
+local t1 = pop()
+printCell(t1)
+
+local t2 = pop()
+printCell(t2)
+
+local t3 = pop()
+printCell(t3)
+
+free(t, t1, t2, t3)
 ]]

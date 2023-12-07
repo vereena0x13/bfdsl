@@ -43,7 +43,7 @@ fn generate_brainfuck(ir: Vec<Insn>, blocks: Vec<Block>) -> String {
                 }
             },
             Insn::Select(n) => {
-                if n > 0 { pointer += n; } else { pointer -= n; }
+                pointer += n;
                 if n > 0 {
                     result.push_str(">".repeat(n as usize).as_str());
                 } else {
@@ -70,11 +70,6 @@ fn generate_brainfuck(ir: Vec<Insn>, blocks: Vec<Block>) -> String {
                     pointer -= delta;
                 }
             },
-            Insn::Comment(s) => {
-                result.push('\n');
-                result.push_str(s.as_str());
-                result.push('\n');
-            }
         }
     }
 
@@ -116,7 +111,7 @@ fn main() {
     let blocks = blocks_from_lua(lua_blocks);
 
     //println!("{}", insns_to_string(&ir));
-    println!("{:?}", blocks);
+    //println!("{:?}", blocks);
 
 
     let bf = generate_brainfuck(ir, blocks);
