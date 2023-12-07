@@ -32,6 +32,8 @@ local fenv = {
 	pairs = _G.pairs,
 	ipairs = _G.ipairs,
 	error = _G.error,
+	class = _G.class,
+	Ref = _G.Ref
 }
 fenv._G = fenv
 
@@ -66,7 +68,8 @@ local codegen_fns = {
 	"open", "close",
 	"set", "clear",
 	"alloc", "alloc_block", "free", "allocated",
-	"to"
+	"to", "at",
+	"comment"
 }
 for _, fn in ipairs(codegen_fns) do
 	fenv[fn] = function(...) return gen[fn](gen, ...) end

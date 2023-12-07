@@ -12,6 +12,23 @@ end
 
 
 
+Ref = class "Ref"
+
+function Ref:initialize(blk, offset)
+    offset = offset or 0
+    assert_is_int(offset)
+    self.block = blk
+    self.offset = offset
+    assert(offset >= 0)
+    assert(offset < blk.size)
+end
+
+function Ref:__tostring()
+    return "Ref(" .. tostring(self.block.id) ..  ", " .. tostring(self.offset) ..  ")"
+end
+
+
+
 Allocator = class "Allocator"
 
 function Allocator:initialize()
@@ -65,6 +82,7 @@ function Allocator:free(blk)
 end
 
 function Allocator:is_allocated(blk)
+    if blk:isInstanceOf(Ref) then blk = blk.block end
     local active = get_blocks(self.active_blocks, blk.size)
     local index = find_block(active, blk)
     return index ~= -1

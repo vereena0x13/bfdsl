@@ -31,7 +31,7 @@ fn generate_brainfuck(ir: Vec<Insn>, blocks: Vec<Block>) -> String {
     let mut result = String::new();
 
     let block_locations = layout_blocks(blocks);
-    let mut pointer: u32 = 0;
+    let mut pointer: i32 = 0;
 
     for insn in ir {
         match insn {
@@ -43,7 +43,7 @@ fn generate_brainfuck(ir: Vec<Insn>, blocks: Vec<Block>) -> String {
                 }
             },
             Insn::Select(n) => {
-                if n > 0 { pointer += n as u32; } else { pointer -= n as u32; }
+                if n > 0 { pointer += n; } else { pointer -= n; }
                 if n > 0 {
                     result.push_str(">".repeat(n as usize).as_str());
                 } else {
@@ -60,15 +60,20 @@ fn generate_brainfuck(ir: Vec<Insn>, blocks: Vec<Block>) -> String {
             },
             Insn::To(blkid) => {
                 let blk_loc = block_locations[blkid as usize];
-                if blk_loc > pointer {
-                    let delta = blk_loc - pointer;
+                if blk_loc as i32 > pointer {
+                    let delta = blk_loc as i32 - pointer;
                     result.push_str(">".repeat(delta as usize).as_str());
                     pointer += delta;
-                } else if blk_loc < pointer {
-                    let delta = pointer - blk_loc;
+                } else if (blk_loc as i32) < pointer {
+                    let delta = pointer - blk_loc as i32;
                     result.push_str("<".repeat(delta as usize).as_str());
                     pointer -= delta;
                 }
+            },
+            Insn::Comment(s) => {
+                result.push('\n');
+                result.push_str(s.as_str());
+                result.push('\n');
             }
         }
     }
@@ -110,7 +115,7 @@ fn main() {
     let ir = insns_from_lua(lua_ir);
     let blocks = blocks_from_lua(lua_blocks);
 
-    println!("{}", insns_to_string(&ir));
+    //println!("{}", insns_to_string(&ir));
     println!("{:?}", blocks);
 
 

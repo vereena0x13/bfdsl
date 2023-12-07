@@ -12,7 +12,8 @@ pub enum Insn {
     Open,
     Close,
     Set(u32),
-    To(u32)
+    To(u32),
+    Comment(String)
 }
 
 impl fmt::Display for Insn {
@@ -26,6 +27,7 @@ impl fmt::Display for Insn {
             Insn::Close     => write!(f, "close"),
             Insn::Set(n)    => write!(f, "set {}", n),
             Insn::To(blkid) => write!(f, "to <{}>", blkid),
+            Insn::Comment(s) => write!(f, "{}", s),
         }
     }    
 }
@@ -46,6 +48,7 @@ pub fn insns_from_lua(lua_ir: LuaTable) -> Vec<Insn> {
             5 => Insn::Close,
             6 => Insn::Set(lua_insn.get::<_, i32>("operand").unwrap() as u32),
             7 => Insn::To(lua_insn.get::<_, i32>("operand").unwrap() as u32),
+            8 => Insn::Comment(lua_insn.get::<_, String>("operand").unwrap()),
             _ => panic!()
         };
 

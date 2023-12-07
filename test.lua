@@ -2,6 +2,8 @@ function move(dst, src)
 	assert(allocated(src))
 	assert(allocated(dst))
 
+    comment("move " .. tostring(src) .. " to " .. tostring(dst))
+
 	to(dst)
 	clear()
 	to(src)
@@ -12,11 +14,15 @@ function move(dst, src)
 		to(src)
 	close()
 	to(dst)
+
+    comment ";"
 end
 
 function copy(dst, src)
 	assert(allocated(src))
 	assert(allocated(dst))
+
+    comment("copy " .. tostring(src) .. " to " .. tostring(dst))
 
 	local tmp = alloc()
 
@@ -35,6 +41,8 @@ function copy(dst, src)
 	move(src, tmp) 
 	free(tmp)
 	to(dst)
+
+    comment ";"
 end
 
 function swap(a, b)
@@ -443,3 +451,153 @@ function printCell(a)
 end
 
 
+
+local emit = (function()
+    local LUT = {
+        ["+"] = inc,
+        ["-"] = dec,
+        [">"] = right,
+        ["<"] = left,
+        [","] = read,
+        ["."] = write,
+        ["["] = open,
+        ["]"] = close
+    }
+    return function(s)
+        for i = 1, #s do
+            local fn = LUT[s:sub(i, i)]
+            if fn then fn() end
+        end
+    end
+end)()
+
+
+Array = class "Array"
+
+function Array:initialize(size)
+    -- temp
+    -- index
+    -- data
+    -- index_copy
+    self.pointer = alloc_block(size + 4)
+end
+
+function Array:set(idx, val)
+    assert(allocated(idx))
+    assert(allocated(val))
+
+    comment("set " .. tostring(idx) .. " to " .. tostring(val))
+
+    local index = Ref(self.pointer, 1)
+    local data = Ref(self.pointer, 2)
+    
+    copy(index, idx)
+    copy(data, val)
+
+    to(index)
+    open()
+        dec()
+        emit(">>")
+        inc()
+        emit(">")
+        open()
+            dec()
+            emit("<<<<")
+            inc()
+            emit(">>>>")
+        close()
+        emit("<[->+<]")
+        emit("<[->+<]")
+        emit("<[->+<]")
+        emit(">")
+    close()
+    
+    emit(">>>[-]<<")
+    emit("[->>+<<]>")
+
+    open()
+        dec()
+        emit("[-<+>]")
+        emit("<<<<[->>>>+<<<<]")
+        emit(">>>")
+    close()
+    emit("<<")
+
+    at(index)
+
+    comment ";"
+end
+
+function Array:get(idx, val)
+    assert(allocated(idx))
+    assert(allocated(val))
+
+    local index = Ref(self.pointer, 1)
+    local data = Ref(self.pointer, 2)
+    
+    copy(index, idx)
+
+    to(index)
+    open()
+        dec()
+        emit(">>")
+        inc()
+        emit(">")
+        open()
+            dec()
+            emit("<<<<")
+            inc()
+            emit(">>>>")
+        close()
+        emit("<[->+<]")
+        emit("<<[->+<]")
+        emit(">")
+    close()
+    
+    emit(">>>[-<<+<<+>>>>]")
+    emit("<<<<[->>>>+<<<<]")
+    emit(">>>")
+
+    open()
+        dec()
+        emit("<[-<+>]>")
+        emit("[-<+>]")
+        emit("<<<<[->>>>+<<<<]")
+        emit(">>>")
+    close()
+    emit("<<")
+
+    at(index)
+
+    move(val, data)
+end
+
+
+
+local arr = Array(4)
+
+local i, x = alloc(2)
+
+to(i) set(0)
+to(x) set(1)
+arr:set(i, x)
+
+--to(i) set(1)
+--to(x) set(2)
+--arr:set(i, x)
+
+--[[
+for a = 0, 3 do
+    to(i) set(a)
+    to(x) set(a + 1)
+    arr:set(i, x)
+end
+]]
+
+--[[
+for a = 3, 0 do
+    to(i) set(a)
+    arr:get(i, x)
+    printCell(x)
+end
+]]
