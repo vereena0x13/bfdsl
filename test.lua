@@ -569,7 +569,7 @@ local function dbg(c)
     for i = 1, c:len() do
         to(t) 
         set(string.byte(c:sub(i, i)))
-        write(1)
+        write()
     end
     free(t)
 end
@@ -579,32 +579,27 @@ local sp, spmax = alloc(2)
 local stack = Array(4)
 
 local function push(x)
-    if type(x) == "number" then
-        local t = alloc()
-        to(t)
-        set(x)
-        push(t)
-        free(t)
-        return
-    end
+	if type(x) == "number" then
+		local t = alloc()
+		to(t) set(x)
+		push(t)
+		free(t)
+		return
+	end
 
-    local t1, t2 = alloc(2)
-    copy(t1, sp)
-    copy(t2, x)
-    
-    stack:set(sp, x)
-    to(sp)
-    inc()
+	stack:set(sp, x)
+	to(sp)
+	inc()
 
-    local t3 = alloc()
-    copy(t2, sp)
-    copy(t3, spmax)
-    gt(t1, t2, t3)
-    if_then(t1, function()
-        copy(spmax, sp)
-    end)
+	local t1, t2, t3 = alloc(3)
+	copy(t2, sp)
+	copy(t3, spmax)
+	gt(t1, t2, t3)
+	if_then(t1, function()
+		copy(spmax, sp)
+	end)
 
-    free(t1, t2, t3)
+	free(t1, t2, t3)
 end
 
 local function pop()
@@ -759,6 +754,7 @@ dbg("\n")
 ]]
 
 
+
 push(1)
 push(2)
 
@@ -766,15 +762,14 @@ local t = alloc()
 to(t) set(3)
 push(t)
 
---[[
+
 local t1 = pop()
-printCell(t1)
+--printCell(t1)
 
 local t2 = pop()
-printCell(t2)
+--printCell(t2)
 
 local t3 = pop()
-printCell(t3)
+--printCell(t3)
 
 free(t, t1, t2, t3)
-]]
