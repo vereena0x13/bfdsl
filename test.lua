@@ -575,7 +575,8 @@ local function dbg(c)
 end
 
 
-local sp, spmax = alloc(2)
+local sp = alloc()
+-- local spmax = alloc()
 local stack = Array(4)
 
 local function push(x)
@@ -591,29 +592,38 @@ local function push(x)
 	to(sp)
 	inc()
 
-	local t1, t2, t3 = alloc(3)
-	copy(t2, sp)
-	copy(t3, spmax)
-	gt(t1, t2, t3)
-	if_then(t1, function()
-		copy(spmax, sp)
-	end)
+	if spmax then
+		local t1, t2, t3 = alloc(3)
+		copy(t2, sp)
+		copy(t3, spmax)
+		gt(t1, t2, t3)
+		if_then(t1, function()
+			copy(spmax, sp)
+		end)
+	end
 
 	free(t1, t2, t3)
 end
 
 local function pop()
-    to(sp)
-    dec()
-    local t1, r = alloc(2)
-    copy(t1, sp)
-    stack:get(t1, r)
-    free(t1)
-    to(r)
-    return r
+	to(sp) dec()
+	local r = alloc()
+	stack:get(sp, r)
+	to(r)
+	return r
 end
 
---[[
+local function pop2()
+	to(sp) dec()
+	local t1, r = alloc(2)
+	copy(t1, sp)
+	stack:get(t1, r)
+	free(t1)
+	to(r)
+	return r
+end
+
+
 
 -- TODO: move nip (and ip ig?) into gen
 -- by making the `a` functions return what
@@ -747,14 +757,17 @@ gen({
 })
 
 
-dbg("\nspmax: ")
-printCell(spmax)
-dbg("\n")
+if spmax then
+	dbg("\nspmax: ")
+	printCell(spmax)
+	dbg("\n")
+end
 
-]]
 
 
 
+
+--[[
 push(1)
 push(2)
 
@@ -763,13 +776,14 @@ to(t) set(3)
 push(t)
 
 
-local t1 = pop()
+local t1 = pop2()
 --printCell(t1)
 
-local t2 = pop()
+local t2 = pop2()
 --printCell(t2)
 
-local t3 = pop()
+local t3 = pop2()
 --printCell(t3)
 
 free(t, t1, t2, t3)
+]]
