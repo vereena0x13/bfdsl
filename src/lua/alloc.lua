@@ -6,6 +6,10 @@ function Block:initialize(id, size)
     self.uses = {}
 end
 
+function Block:ref(i)
+    return Ref(self, i)
+end
+
 function Block:__tostring()
     return "Block(" .. tostring(self.id) .. ", " .. tostring(self.size) .. ")"
 end
@@ -22,6 +26,10 @@ function Ref:initialize(blk, offset)
     self.offset = offset
     assert(offset >= 0)
     assert(offset < blk.size)
+end
+
+function Ref:ref(i)
+    return Ref(self.block, self.offset + i)
 end
 
 function Ref:__tostring()
@@ -46,7 +54,7 @@ local function get_blocks(blklist, size)
     return blocks
 end
 
-local function find_block(blklist, blk)
+local function find_block(blklist, blk) -- TODO: don't use linear search
     for i, v in ipairs(blklist) do
         if v == blk then return i end
     end
@@ -83,7 +91,7 @@ function Allocator:free(blk)
     table.insert(free, blk)
 end
 
-function Allocator:is_allocated(blk)
+function Allocator:allocated(blk)
     if blk:isInstanceOf(Ref) then blk = blk.block end
     local active = get_blocks(self.active_blocks, blk.size)
     local index = find_block(active, blk)

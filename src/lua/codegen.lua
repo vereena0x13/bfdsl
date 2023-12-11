@@ -101,12 +101,12 @@ function CodeGen:free(...)
 end
 
 function CodeGen:allocated(...)
-    return self.allocator:is_allocated(...)
+    return self.allocator:allocated(...)
 end
 
 
 function CodeGen:to(x)
-    assert(self.allocator:is_allocated(x))
+    assert(self.allocator:allocated(x))
 
     local blk, offset
     if x:isInstanceOf(Ref) then
@@ -130,7 +130,7 @@ function CodeGen:to(x)
 end
 
 function CodeGen:at(blk)
-    assert(self.allocator:is_allocated(blk))
+    assert(self.allocator:allocated(blk))
     assert(blk:isInstanceOf(Block))
     self.current_block = blk
     self.pointer_offset = 0

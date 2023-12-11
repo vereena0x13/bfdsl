@@ -14,11 +14,12 @@ function move(dst, src)
 	to(dst)
 end
 
+local copy_tmp = alloc()
 function copy(dst, src)
 	assert(allocated(src))
 	assert(allocated(dst))
 
-	local tmp = alloc()
+	--local tmp = alloc()
 
 	to(dst)
 	clear()
@@ -27,13 +28,13 @@ function copy(dst, src)
 		dec()
 		to(dst)
 		inc()
-		to(tmp)
+		to(copy_tmp)
 		inc()
 		to(src)
 	close()
 
-	move(src, tmp) 
-	free(tmp)
+	move(src, copy_tmp) 
+	--free(tmp)
 	to(dst)
 end
 
@@ -69,22 +70,24 @@ function if_then_else(cond, t, f)
 
 	local tmp = alloc()
 
-	to(tmp)
-    set(1)
+	to(tmp) set(1)
 
 	to(cond)
 	open()
 		t()
-		to(cond)
-		clear()
 		to(tmp)
 		dec()
+		to(cond)
+		clear()
 	close()
+	to(tmp) -- TODO: why does removing this break it?
 	open()
 		f()
 		to(tmp)
 		dec()
 	close()
+
+	free(tmp)
 end
 
 
@@ -473,8 +476,8 @@ function Array:set(idx, val)
     assert(allocated(idx))
     assert(allocated(val))
 
-    local index = Ref(self.pointer, 1)
-    local data = Ref(self.pointer, 2)
+    local index = self.pointer:ref(1)
+    local data = self.pointer:ref(2)
     
     copy(index, idx)
     copy(data, val)
@@ -515,8 +518,8 @@ function Array:get(idx, val)
     assert(allocated(idx))
     assert(allocated(val))
 
-    local index = Ref(self.pointer, 1)
-    local data = Ref(self.pointer, 2)
+    local index = self.pointer:ref(1)
+    local data = self.pointer:ref(2)
     
     copy(index, idx)
 
@@ -558,21 +561,19 @@ end
 
 
 
-
+local dbg_mem = alloc()
 local function dbg(c)
-    local t = alloc()
     for i = 1, c:len() do
-        to(t) 
+        to(dbg_mem) 
         set(string.byte(c:sub(i, i)))
         write()
     end
-    free(t)
 end
 
 
 local sp = alloc()
 -- local spmax = alloc()
-local stack = Array(4)
+local stack = Array(30)
 
 local function push(x)
 	if type(x) == "number" then
@@ -621,7 +622,7 @@ end
 
 
 
---[[
+
 
 
 
@@ -652,19 +653,24 @@ local function gen(a)
     local t1, t2, ip2, sr, t3 = alloc(5)
     to(ip)
     open()
+		--dbg("sr = 1\n")
         to(sr) set(1)
         for i = 1, #a do
             copy(t3, sr)
             if_then(t3, function()
+				--dbg(tostring(i) .. "?\n")
                 to(t1) set(i)
                 copy(ip2, ip)
                 eq(t2, t1, ip2)
                 if_then(t2, function()
-                    to(sr) set(0)
+					--dbg("> " .. tostring(i) .. "\n")
+                    to(sr) clear()
                     a[i]()
+					--dbg("<\n")
                 end)
             end)
         end
+		--dbg("ip = nip\n\n")
         move(ip, nip)
     close()
     free(t1, t2, ip2, sr, t3)
@@ -691,22 +697,24 @@ gen({
         local rip = pop()
         local t1, t2 = alloc(2)
 
-        copy(t1, x)
-        bnot(t2, t1)
         if_then_else(t2, function()
+			--dbg("  x == 0\n")
             -- x == 0; return 0
             push(0)
             move(nip, rip)
         end, function()
+			--dbg("  x > 0\n")
             copy(t1, x)
             dec()
             bnot(t2, t1)
             if_then_else(t2, function()
+				--dbg("  x == 1\n")
                 -- x == 1; return 1
                 push(1)
                 move(nip, rip)
             end, function()
-                -- n > 1; return fib(x - 1) + fib(x - 2)
+				--dbg("  x > 1\n")
+                -- x > 1; return fib(x - 1) + fib(x - 2)
                 push(rip)
 
                 copy(t1, x)
@@ -765,25 +773,28 @@ end
 
 
 
-]]
 
 
 
+
+--[[
 push(1)
 push(2)
+push(3)
 
-local t = alloc()
-to(t) set(3)
-push(t)
+--local t = alloc()
+--to(t) set(3)
+--push(t)
 
 
 local t1 = pop()
 --printCell(t1)
 
-local t2 = pop2()
+local t2 = pop()
 --printCell(t2)
 
 local t3 = pop()
 --printCell(t3)
 
 free(t, t1, t2, t3)
+]]
