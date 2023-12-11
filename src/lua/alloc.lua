@@ -12,6 +12,7 @@ end
 
 
 
+
 Ref = class "Ref"
 
 function Ref:initialize(blk, offset)
@@ -26,6 +27,7 @@ end
 function Ref:__tostring()
     return "Ref(" .. tostring(self.block.id) ..  ", " .. tostring(self.offset) ..  ")"
 end
+
 
 
 

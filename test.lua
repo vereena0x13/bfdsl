@@ -75,12 +75,11 @@ function if_then_else(cond, t, f)
 	to(cond)
 	open()
 		t()
-		to(tmp)
-		dec()
 		to(cond)
 		clear()
+		to(tmp)
+		dec()
 	close()
-	to(tmp)
 	open()
 		f()
 		to(tmp)
@@ -107,6 +106,7 @@ function bor(r, a, b)
 	assert(allocated(a))
 	assert(allocated(b))
 
+	-- TODO: is this correct? feels like it's not
 	to(r)
 	clear()
 	if_then(a, function()
@@ -123,7 +123,6 @@ function band(r, a, b)
 
 	to(r)
 	clear()
-	to(a)
 	if_then(a, function()
 		if_then(b, function()
 			to(r)
@@ -299,6 +298,8 @@ function add(r, a)
 		dec()
 	close()
 	to(r)
+
+	free(tmp)
 end
 
 function sub(r, a)
@@ -315,6 +316,8 @@ function sub(r, a)
 		dec()
 	close()
 	to(r)
+
+	free(tmp)
 end
 
 function mul(r, a, b)
@@ -356,8 +359,6 @@ function divmod(quotient, remainder, a, b)
 
 	to(quotient)
 	clear()
-	to(remainder)
-	clear()
 
 	cond()
 	open()
@@ -375,17 +376,10 @@ function divmod(quotient, remainder, a, b)
 		cond()
 	close()
 
-	to(a)
-	open()
-		dec()
-		to(remainder)
-		inc()
-		to(a)
-	close()
+	move(remainder, a)
+	to(quotient)
 
 	free(tmp1, tmp2, tmp3)
-
-	to(quotient)
 end
 
 function printCell(a)
@@ -462,6 +456,7 @@ local emit = (function()
         end
     end
 end)()
+
 
 
 Array = class "Array"
@@ -625,6 +620,11 @@ end
 
 
 
+
+--[[
+
+
+
 -- TODO: move nip (and ip ig?) into gen
 -- by making the `a` functions return what
 -- to set the nip to.
@@ -765,9 +765,10 @@ end
 
 
 
+]]
 
 
---[[
+
 push(1)
 push(2)
 
@@ -776,14 +777,13 @@ to(t) set(3)
 push(t)
 
 
-local t1 = pop2()
+local t1 = pop()
 --printCell(t1)
 
 local t2 = pop2()
 --printCell(t2)
 
-local t3 = pop2()
+local t3 = pop()
 --printCell(t3)
 
 free(t, t1, t2, t3)
-]]
