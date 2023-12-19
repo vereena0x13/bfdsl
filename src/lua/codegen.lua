@@ -2,7 +2,8 @@ CodeGen = class "CodeGen"
 
 function CodeGen:initialize()
     self.allocator = Allocator()
-    self.buffer = {}
+    self.insns = {}
+    self.comments = {}
     self.current_block = nil
     self.pointer_offset = 0
 end
@@ -18,7 +19,7 @@ function CodeGen:adjust(n)
     assert_is_int(n)
     check_current_block(self)
 
-    table.insert(self.buffer, Insn(OpCode.ADJUST, n))
+    table.insert(self.insns, Insn(OpCode.ADJUST, n))
 end
 
 function CodeGen:inc(n) self:adjust(math.abs(n or 1)) end
@@ -34,7 +35,7 @@ function CodeGen:select(n)
         error("out of bounds of current block (" .. tostring(self.current_block) .. ")")
     end
 
-    table.insert(self.buffer, Insn(OpCode.SELECT, n))
+    table.insert(self.insns, Insn(OpCode.SELECT, n))
 end
 
 function CodeGen:right(n) self:select(math.abs(n or 1)) end
@@ -45,31 +46,31 @@ function CodeGen:read(n)
     n = n or 1
     assert_is_int(n)
     check_current_block(self)
-    table.insert(self.buffer, Insn(OpCode.READ, n or 1))
+    table.insert(self.insns, Insn(OpCode.READ, n or 1))
 end
 
 function CodeGen:write(n)
     n = n or 1
     assert_is_int(n)
     check_current_block(self)
-    table.insert(self.buffer, Insn(OpCode.WRITE, n or 1))
+    table.insert(self.insns, Insn(OpCode.WRITE, n or 1))
 end
 
 
 function CodeGen:open()
     check_current_block(self)
-    table.insert(self.buffer, Insn(OpCode.OPEN))
+    table.insert(self.insns, Insn(OpCode.OPEN))
 end
 
 function CodeGen:close()
     check_current_block(self)
-    table.insert(self.buffer, Insn(OpCode.CLOSE))
+    table.insert(self.insns, Insn(OpCode.CLOSE))
 end
 
 
 function CodeGen:set(x)
     assert_is_int(x)
-    table.insert(self.buffer, Insn(OpCode.SET, x))
+    table.insert(self.insns, Insn(OpCode.SET, x))
 end
 
 function CodeGen:clear()
@@ -122,7 +123,7 @@ function CodeGen:to(x)
     self.current_block = blk
     self.pointer_offset = offset
     
-    table.insert(self.buffer, Insn(OpCode.TO, blk.id))
+    table.insert(self.insns, Insn(OpCode.TO, blk.id))
 
     if x:isInstanceOf(Ref) then
         self:select(x.offset)
@@ -134,4 +135,8 @@ function CodeGen:at(blk)
     assert(blk:isInstanceOf(Block))
     self.current_block = blk
     self.pointer_offset = 0
+end
+
+function CodeGen:comment(s)
+    table.insert(self.comments, { #self.insns, s })
 end

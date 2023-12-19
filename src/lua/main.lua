@@ -68,7 +68,8 @@ local codegen_fns = {
 	"open", "close",
 	"set", "clear",
 	"alloc", "alloc_block", "free", "allocated",
-	"to", "at"
+	"to", "at",
+	"comment"
 }
 for _, fn in ipairs(codegen_fns) do
 	fenv[fn] = function(...) return gen[fn](gen, ...) end
@@ -84,4 +85,8 @@ if not status then
 end
 
 
-return gen.buffer, gen.allocator.blocks
+return {
+	insns = gen.insns,
+	blocks = gen.allocator.blocks,
+	comments = gen.comments
+}

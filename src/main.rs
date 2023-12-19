@@ -46,14 +46,13 @@ fn main() {
 
     let base_path = path.parent().unwrap().to_str().unwrap();
     let file_name = path.file_name().unwrap().to_str().unwrap();
-    let (lua_ir, lua_blocks) = lua.load(MAIN_LUA).call::<_, (LuaTable, LuaTable)>((base_path, file_name)).unwrap();
-    let ir = insns_from_lua(lua_ir);
-    let blocks = blocks_from_lua(lua_blocks);
+    let lua_ir = lua.load(MAIN_LUA).call::<_, LuaTable>((base_path, file_name)).unwrap();
+    let ir = ir_from_lua(lua_ir);
 
-    //println!("{}", insns_to_string(&ir));
-    //println!("{:?}", blocks);
+    
+    fs::write(format!("{}.ir", file_name), ir_to_string(&ir)).unwrap();
 
 
-    let bf = codegen::generate_brainfuck(ir, blocks);
+    let bf = codegen::generate_brainfuck(&ir);
     fs::write(&format!("{}.bf", file_name), bf).unwrap();
 }

@@ -2,6 +2,8 @@ function move(dst, src)
 	assert(allocated(src))
 	assert(allocated(dst))
 
+	comment("move " .. tostring(dst) .. " <- " .. tostring(src))
+
 	to(dst)
 	clear()
 	to(src)
@@ -18,6 +20,8 @@ local copy_tmp = alloc()
 function copy(dst, src)
 	assert(allocated(src))
 	assert(allocated(dst))
+
+	comment("copy " .. tostring(dst) .. " <- " .. tostring(src))
 
 	--local tmp = alloc()
 
@@ -42,6 +46,8 @@ function swap(a, b)
 	assert(allocated(a))
 	assert(allocated(b))
 
+	comment("swap " .. tostring(a) .. " <-> " .. tostring(b))
+
 	local tmp = alloc()
 
 	move(tmp, a) 
@@ -55,12 +61,17 @@ function if_then(cond, t)
 	assert(allocated(cond))
 	assert(type(t) == "function")
 
+	comment("if " .. tostring(cond) .. ":")
+
 	to(cond)
 	open()
+		comment("if body:")
 		t()
 		to(cond)
 		clear()
 	close()
+
+	comment("endif")
 end
 
 function if_then_else(cond, t, f)
@@ -601,7 +612,7 @@ local function push(x)
 	free(t1, t2, t3)
 end
 
-local function pop()
+local function pop2()
 	to(sp) dec()
 	local r = alloc()
 	stack:get(sp, r)
@@ -609,7 +620,7 @@ local function pop()
 	return r
 end
 
-local function pop2()
+local function pop()
 	to(sp) dec()
 	local t1, r = alloc(2)
 	copy(t1, sp)
@@ -678,13 +689,13 @@ end
 
 gen({
     function() -- 1
-        dbg("IP: 1\n")
+        --dbg("IP: 1\n")
         push(2) -- IP: 2
         push(4) -- x
         to(nip) set(3) -- fib(x)
     end,
     function() -- 2
-        dbg("IP: 2\n")
+        --dbg("IP: 2\n")
         local t = pop()
         dbg("x: ")
         printCell(t)
@@ -692,27 +703,17 @@ gen({
         free(t)
     end,
     function() -- 3
-        dbg("IP: 3\n")
+        --dbg("IP: 3\n")
         local x = pop()
         local rip = pop()
-        local t1, t2 = alloc(2)
+        local t1 = alloc()
 
-        if_then_else(t2, function()
-			--dbg("  x == 0\n")
-            -- x == 0; return 0
-            push(0)
-            move(nip, rip)
-        end, function()
+		copy(t1, x)
+        if_then_else(t1, function()
 			--dbg("  x > 0\n")
             copy(t1, x)
             dec()
-            bnot(t2, t1)
-            if_then_else(t2, function()
-				--dbg("  x == 1\n")
-                -- x == 1; return 1
-                push(1)
-                move(nip, rip)
-            end, function()
+            if_then_else(t1, function()
 				--dbg("  x > 1\n")
                 -- x > 1; return fib(x - 1) + fib(x - 2)
                 push(rip)
@@ -726,13 +727,23 @@ gen({
                 push(t1)
 
                 to(nip) set(4) -- IP: 4
+            end, function()
+				--dbg("  x == 1\n")
+                -- x == 1; return 1
+                push(1)
+                move(nip, rip)
             end)
+        end, function()
+			--dbg("  x == 0\n")
+            -- x == 0; return 0
+            push(0)
+            move(nip, rip)
         end)
 
         free(x, rip, t1, t2)
     end,
     function() -- 4
-        dbg("IP: 4\n")
+        --dbg("IP: 4\n")
         local x = pop()
         push(5) -- IP: 5
         push(x)
@@ -740,7 +751,7 @@ gen({
         free(x)
     end,
     function() -- 5
-        dbg("IP: 5\n")
+        --dbg("IP: 5\n")
         local r = pop()
         local x = pop()
         push(r)
@@ -750,7 +761,7 @@ gen({
         free(r, x)
     end,
     function() -- 6
-        dbg("IP: 6\n")
+        --dbg("IP: 6\n")
         local x1 = pop()
         local x2 = pop()
         local rip = pop()
@@ -771,30 +782,3 @@ if spmax then
 	dbg("\n")
 end
 
-
-
-
-
-
-
---[[
-push(1)
-push(2)
-push(3)
-
---local t = alloc()
---to(t) set(3)
---push(t)
-
-
-local t1 = pop()
---printCell(t1)
-
-local t2 = pop()
---printCell(t2)
-
-local t3 = pop()
---printCell(t3)
-
-free(t, t1, t2, t3)
-]]
