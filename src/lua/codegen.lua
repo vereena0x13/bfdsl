@@ -32,7 +32,7 @@ function CodeGen:select(n)
 
     self.pointer_offset = self.pointer_offset + n
     if self.pointer_offset < 0 or self.pointer_offset >= self.current_block.size then
-        error("out of bounds of current block (" .. tostring(self.current_block) .. ")")
+        error("pointer (" .. tostring(self.pointer_offset) .. ") is out of bounds of the current block (" .. tostring(self.current_block) .. ")")
     end
 
     table.insert(self.insns, Insn(OpCode.SELECT, n))

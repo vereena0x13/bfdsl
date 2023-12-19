@@ -23,7 +23,7 @@ function copy(dst, src)
 
 	comment("copy " .. tostring(dst) .. " <- " .. tostring(src))
 
-	--local tmp = alloc()
+	local tmp = alloc()
 
 	to(dst)
 	clear()
@@ -38,7 +38,7 @@ function copy(dst, src)
 	close()
 
 	move(src, copy_tmp) 
-	--free(tmp)
+	free(tmp)
 	to(dst)
 end
 
@@ -464,10 +464,21 @@ local emit = (function()
         ["]"] = close
     }
     return function(s)
-        for i = 1, #s do
-            local fn = LUT[s:sub(i, i)]
-            if fn then fn() end
-        end
+		local i = 1
+		while i <= #s do
+			local c = s:sub(i,i)
+			if c == "[" or c == "]" then
+				LUT[c]()
+				i = i + 1
+			else
+				local cnt = 0
+				while i <= #s and s:sub(i,i) == c do
+					cnt = cnt + 1
+					i = i + 1
+				end
+				LUT[c](cnt)
+			end			
+		end
     end
 end)()
 
@@ -571,7 +582,6 @@ end
 
 
 
-
 local dbg_mem = alloc()
 local function dbg(c)
     for i = 1, c:len() do
@@ -580,6 +590,7 @@ local function dbg(c)
         write()
     end
 end
+
 
 
 local sp = alloc()
@@ -612,7 +623,7 @@ local function push(x)
 	free(t1, t2, t3)
 end
 
-local function pop2()
+local function pop1()
 	to(sp) dec()
 	local r = alloc()
 	stack:get(sp, r)
@@ -620,17 +631,16 @@ local function pop2()
 	return r
 end
 
-local function pop()
+local function pop2()
 	to(sp) dec()
 	local t1, r = alloc(2)
-	copy(t1, sp)
-	stack:get(t1, r)
+	stack:get(sp, r)
 	free(t1)
 	to(r)
 	return r
 end
 
-
+local pop = pop2
 
 
 
