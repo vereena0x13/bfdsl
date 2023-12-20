@@ -117,7 +117,7 @@ pub fn ir_to_string(ir: &IR) -> String {
     result.push_str("\ninsns:\n");
 
     let mut level = 0;
-    for (i, insn) in ir.insns.iter().enumerate() {
+    for insn in &ir.insns {
         if let InsnVariant::Close = insn.variant { level -= 1 }
         result.push_str("    ".repeat(level).as_str());
         if let InsnVariant::Open = insn.variant { level += 1 }

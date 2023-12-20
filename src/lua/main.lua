@@ -86,6 +86,5 @@ end
 
 return {
 	insns = gen.insns,
-	blocks = gen.allocator.blocks,
-	comments = gen.comments
+	blocks = gen.allocator.blocks
 }
