@@ -13,7 +13,6 @@ function move(dst, src)
 		inc()
 		to(src)
 	close()
-	to(dst)
 end
 
 local copy_tmp = alloc()
@@ -23,7 +22,7 @@ function copy(dst, src)
 
 	comment("copy " .. tostring(dst) .. " <- " .. tostring(src))
 
-	local tmp = alloc()
+	--local tmp = alloc()
 
 	to(dst)
 	clear()
@@ -38,8 +37,7 @@ function copy(dst, src)
 	close()
 
 	move(src, copy_tmp) 
-	free(tmp)
-	to(dst)
+	--free(tmp)
 end
 
 function swap(a, b)
@@ -91,7 +89,7 @@ function if_then_else(cond, t, f)
 		to(cond)
 		clear()
 	close()
-	to(tmp) -- TODO: why does removing this break it?
+	to(tmp)
 	open()
 		f()
 		to(tmp)
@@ -112,7 +110,6 @@ function truthy(r, a)
 		to(r)
 		inc()
 	end)
-	to(r)
 end
 
 function bor(r, a, b)
@@ -143,7 +140,6 @@ function band(r, a, b)
 			inc()
 		end)
 	end)
-	to(r)
 end
 
 function bnot(r, a)
@@ -156,7 +152,6 @@ function bnot(r, a)
 		to(r)
 		dec()		
 	end)
-	to(r)
 end
 
 function eq(r, a, b)
@@ -170,6 +165,7 @@ function eq(r, a, b)
 		copy(tmp1, a) 
 		copy(tmp2, b) 
 		band(c, tmp1, tmp2)
+		to(c)
 	end
 
 	cond()
@@ -213,6 +209,7 @@ function lt(r, a, b)
 		copy(tmp1, a) 
 		copy(tmp2, b) 
 		band(c, tmp1, tmp2)
+		to(c)
 	end
 
 	cond()
@@ -240,6 +237,7 @@ function gt(r, a, b)
 		copy(tmp1, a) 
 		copy(tmp2, b) 
 		band(c, tmp1, tmp2)
+		to(c)
 	end
 
 	cond()
@@ -304,14 +302,14 @@ function add(r, a)
 
 	local tmp = alloc()
 
-	copy(tmp, a) 
+	copy(tmp, a)
+	to(tmp)
 	open()
 		to(r)
 		inc()
 		to(tmp)
 		dec()
 	close()
-	to(r)
 
 	free(tmp)
 end
@@ -323,13 +321,13 @@ function sub(r, a)
 	local tmp = alloc()
 
 	copy(tmp, a) 
+	to(tmp)
 	open()
 		to(r)
 		dec()
 		to(tmp)
 		dec()
 	close()
-	to(r)
 
 	free(tmp)
 end
@@ -337,12 +335,11 @@ end
 function mul(r, a, b)
 	local tmp1, tmp2 = alloc(2)
 
-	copy(tmp1, a) 
-	to(a)
-	clear()
+	move(tmp1, a)
 	to(tmp1)
 	open()
 		copy(tmp2, b) 
+		to(tmp2)
 		open()
 			to(a)
 			inc()
@@ -369,6 +366,7 @@ function divmod(quotient, remainder, a, b)
 		copy(tmp1, a) 
 		copy(tmp2, b) 
 		gte(tmp3, tmp1, tmp2)
+		to(tmp3)
 	end
 
 	to(quotient)
@@ -377,6 +375,7 @@ function divmod(quotient, remainder, a, b)
 	cond()
 	open()
 		copy(tmp1, b) 
+		to(tmp1)
 		open()
 			dec()
 			to(a)
@@ -391,7 +390,6 @@ function divmod(quotient, remainder, a, b)
 	close()
 
 	move(remainder, a)
-	to(quotient)
 
 	free(tmp1, tmp2, tmp3)
 end
@@ -413,6 +411,7 @@ function printCell(a)
 	copy(tmp2, a) 
 	divmod(digit, remainder, tmp2, divisor)
 	copy(tmp3, digit) 
+	to(tmp3)
 	open()
 		to(tmp5)
 		inc()
@@ -429,8 +428,10 @@ function printCell(a)
 	divmod(digit, remainder, tmp2, divisor)
 	copy(tmp3, digit) 
 	bor(tmp6, tmp3, tmp5)
+	to(tmp6)
 	open()
 		copy(tmp3, digit) 
+		to(tmp3)
 		inc(48)
 		write()
 		clear()
@@ -446,8 +447,6 @@ function printCell(a)
 	write()
 
 	free(tmp1, tmp2, tmp3, divisor, digit, remainder, tmp5, tmp6)
-
-	to(a)
 end
 
 
@@ -618,9 +617,8 @@ local function push(x)
 		if_then(t1, function()
 			copy(spmax, sp)
 		end)
+		free(t1, t2, t3)
 	end
-
-	free(t1, t2, t3)
 end
 
 local function pop1()
@@ -693,6 +691,7 @@ local function gen(a)
         end
 		--dbg("ip = nip\n\n")
         move(ip, nip)
+		to(ip)
     close()
     free(t1, t2, ip2, sr, t3)
 end
@@ -722,6 +721,7 @@ gen({
         if_then_else(t1, function()
 			--dbg("  x > 0\n")
             copy(t1, x)
+			to(t1)
             dec()
             if_then_else(t1, function()
 				--dbg("  x > 1\n")
@@ -729,10 +729,12 @@ gen({
                 push(rip)
 
                 copy(t1, x)
+				to(t1)
                 dec()
                 push(t1)
 
                 copy(t1, x)
+				to(t1)
                 dec(2)
                 push(t1)
 
@@ -750,7 +752,7 @@ gen({
             move(nip, rip)
         end)
 
-        free(x, rip, t1, t2)
+        free(x, rip, t1)
     end,
     function() -- 4
         --dbg("IP: 4\n")
