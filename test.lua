@@ -13,12 +13,11 @@ function move(dst, src)
 	close()
 end
 
-local copy_tmp = alloc()
 function copy(dst, src)
 	assert(allocated(src))
 	assert(allocated(dst))
 
-	--local tmp = alloc()
+	local tmp = alloc()
 
 	to(dst)
 	clear()
@@ -27,13 +26,13 @@ function copy(dst, src)
 		dec()
 		to(dst)
 		inc()
-		to(copy_tmp)
+		to(tmp)
 		inc()
 		to(src)
 	close()
 
-	move(src, copy_tmp) 
-	--free(tmp)
+	move(src, tmp) 
+	free(tmp)
 end
 
 function swap(a, b)

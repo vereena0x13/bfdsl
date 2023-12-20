@@ -19,6 +19,7 @@ function CodeGen:adjust(n)
     check_current_block(self)
 
     table.insert(self.insns, Insn(OpCode.ADJUST, n))
+    table.insert(self.current_block.uses, #self.insns)
 end
 
 function CodeGen:inc(n) self:adjust(math.abs(n or 1)) end
@@ -46,6 +47,7 @@ function CodeGen:read(n)
     assert_is_int(n)
     check_current_block(self)
     table.insert(self.insns, Insn(OpCode.READ, n or 1))
+    table.insert(self.current_block.uses, #self.insns)
 end
 
 function CodeGen:write(n)
@@ -53,17 +55,20 @@ function CodeGen:write(n)
     assert_is_int(n)
     check_current_block(self)
     table.insert(self.insns, Insn(OpCode.WRITE, n or 1))
+    table.insert(self.current_block.uses, #self.insns)
 end
 
 
 function CodeGen:open()
     check_current_block(self)
     table.insert(self.insns, Insn(OpCode.OPEN))
+    table.insert(self.current_block.uses, #self.insns)
 end
 
 function CodeGen:close()
     check_current_block(self)
     table.insert(self.insns, Insn(OpCode.CLOSE))
+    table.insert(self.current_block.uses, #self.insns)
 end
 
 
@@ -71,6 +76,7 @@ function CodeGen:set(x)
     check_current_block(self)
     assert_is_int(x)
     table.insert(self.insns, Insn(OpCode.SET, x))
+    table.insert(self.current_block.uses, #self.insns)
 end
 
 function CodeGen:clear()

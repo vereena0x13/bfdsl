@@ -83,7 +83,8 @@ pub fn blocks_from_lua(lua_blocks: LuaTable) -> Vec<Block> {
         let lua_block = lua_block.unwrap();
         let id = lua_block.get::<_, u32>("id").unwrap();
         let size = lua_block.get::<_, u32>("size").unwrap();
-        let uses = Vec::<u32>::new(); // TODO
+        let lua_uses = lua_block.get::<_, LuaTable>("uses").unwrap();
+        let uses = lua_uses.sequence_values::<u32>().map(|x| x.unwrap()).collect();
         result.push(Block { id, size, uses });
     }
 
@@ -109,12 +110,16 @@ pub fn ir_from_lua(lua_ir: LuaTable) -> IR {
 pub fn ir_to_string(ir: &IR) -> String {
     let mut result = String::new();
 
-    result.push_str("blocks:\n");
     for block in &ir.blocks {
-        result.push_str(format!("{}\n", block).as_str());
+        result.push_str(format!("{}\n    ", block).as_str());
+        for (i, u) in block.uses.iter().enumerate() {
+            result.push_str(format!("{}", u).as_str());
+            if i < block.uses.len() - 1 { result.push_str(", "); }
+        }
+        result.push('\n');
     }
 
-    result.push_str("\ninsns:\n");
+    result.push('\n');
 
     let mut level = 0;
     for insn in &ir.insns {
