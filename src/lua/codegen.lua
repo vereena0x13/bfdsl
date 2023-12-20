@@ -116,13 +116,11 @@ end
 function CodeGen:to(x)
     assert(self.allocator:allocated(x))
 
-    local blk, offset
+    local blk
     if x:isInstanceOf(Ref) then
         blk = x.block
-        offset = x.offset
     elseif x:isInstanceOf(Block) then
         blk = x
-        offset = 0
     else
         error("expected Block or Ref, got " .. tostring(x))
     end
@@ -133,7 +131,7 @@ function CodeGen:to(x)
     table.insert(self.insns, Insn(OpCode.TO, blk.id))
 
     if x:isInstanceOf(Ref) then
-        self:select(offset)
+        self:select(x.offset)
     end
 end
 
