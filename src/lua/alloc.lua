@@ -84,7 +84,6 @@ function Allocator:free(blk)
     local index = find_block(active, blk)
 
     assert(index ~= -1) -- TODO
-
     assert(table.remove(active, index) == blk)
 
     local free = get_blocks(self.free_blocks, blk.size)

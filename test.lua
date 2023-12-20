@@ -621,24 +621,13 @@ local function push(x)
 	end
 end
 
-local function pop1()
+local function pop()
 	to(sp) dec()
 	local r = alloc()
 	stack:get(sp, r)
 	to(r)
 	return r
 end
-
-local function pop2()
-	to(sp) dec()
-	local t1, r = alloc(2)
-	stack:get(sp, r)
-	free(t1)
-	to(r)
-	return r
-end
-
-local pop = pop2
 
 
 
@@ -794,3 +783,26 @@ if spmax then
 	dbg("\n")
 end
 
+
+
+
+
+
+--[[
+push(1)
+push(2)
+
+local x = alloc()
+to(x) set(3)
+push(x)
+
+
+local t1 = pop()
+printCell(t1)
+
+local t2 = pop()
+printCell(t2)
+
+local t3 = pop()
+printCell(t3)
+]]

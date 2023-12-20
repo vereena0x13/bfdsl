@@ -69,6 +69,7 @@ end
 
 
 function CodeGen:set(x)
+    check_current_block(self)
     assert_is_int(x)
     table.insert(self.insns, Insn(OpCode.SET, x))
 end
@@ -82,7 +83,9 @@ function CodeGen:alloc(n)
     n = n or 1
     local xs = {}
     for i = 1, n do
-        xs[#xs+1] = self.allocator:alloc(1)
+        local x = self.allocator:alloc(1)
+        self:to(x) self:set(0)
+        xs[#xs+1] = x
     end
     return unpack(xs)
 end
@@ -90,7 +93,11 @@ end
 function CodeGen:alloc_block(...)
     local xs = {}
     for _, v in ipairs({...}) do
-        xs[#xs+1] = self.allocator:alloc(v)
+        local x = self.allocator:alloc(v)
+        for i = 0, v - 1 do
+            self:to(x:ref(i)) self:set(0)
+        end
+        xs[#xs+1] = x
     end
     return unpack(xs)
 end
@@ -117,16 +124,16 @@ function CodeGen:to(x)
         blk = x
         offset = 0
     else
-        error()
+        error("expected Block or Ref, got " .. tostring(x))
     end
 
     self.current_block = blk
-    self.pointer_offset = offset
+    self.pointer_offset = 0
     
     table.insert(self.insns, Insn(OpCode.TO, blk.id))
 
     if x:isInstanceOf(Ref) then
-        self:select(x.offset)
+        self:select(offset)
     end
 end
 
