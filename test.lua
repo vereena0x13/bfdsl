@@ -2,8 +2,6 @@ function move(dst, src)
 	assert(allocated(src))
 	assert(allocated(dst))
 
-	comment("move " .. tostring(dst) .. " <- " .. tostring(src))
-
 	to(dst)
 	clear()
 	to(src)
@@ -19,8 +17,6 @@ local copy_tmp = alloc()
 function copy(dst, src)
 	assert(allocated(src))
 	assert(allocated(dst))
-
-	comment("copy " .. tostring(dst) .. " <- " .. tostring(src))
 
 	--local tmp = alloc()
 
@@ -44,8 +40,6 @@ function swap(a, b)
 	assert(allocated(a))
 	assert(allocated(b))
 
-	comment("swap " .. tostring(a) .. " <-> " .. tostring(b))
-
 	local tmp = alloc()
 
 	move(tmp, a) 
@@ -59,17 +53,12 @@ function if_then(cond, t)
 	assert(allocated(cond))
 	assert(type(t) == "function")
 
-	comment("if " .. tostring(cond) .. ":")
-
 	to(cond)
 	open()
-		comment("if body:")
 		t()
 		to(cond)
 		clear()
 	close()
-
-	comment("endif")
 end
 
 function if_then_else(cond, t, f)

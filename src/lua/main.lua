@@ -68,8 +68,7 @@ local codegen_fns = {
 	"open", "close",
 	"set", "clear",
 	"alloc", "alloc_block", "free", "allocated",
-	"to", "at",
-	"comment"
+	"to", "at"
 }
 for _, fn in ipairs(codegen_fns) do
 	fenv[fn] = function(...) return gen[fn](gen, ...) end

@@ -7,9 +7,7 @@ use mlua::prelude::LuaTable;
 #[derive(Debug, Clone, PartialEq)]
 pub struct Insn {
     pub variant: InsnVariant,
-    pub level: u32,
 }
-
 
 
 #[derive(Debug, Clone, PartialEq)]
@@ -45,7 +43,6 @@ pub fn insns_from_lua(lua_ir: LuaTable) -> Vec<Insn> {
     for lua_insn in lua_ir.sequence_values::<LuaTable>() {
         let lua_insn = lua_insn.unwrap();
         let opcode = lua_insn.get::<_, u32>("opcode").unwrap();
-        let level = lua_insn.get::<_, u32>("level").unwrap();
         
         let insn_variant = match opcode {
             0 => InsnVariant::Adjust(lua_insn.get::<_, i32>("operand").unwrap()),
@@ -59,7 +56,7 @@ pub fn insns_from_lua(lua_ir: LuaTable) -> Vec<Insn> {
             _ => panic!()
         };
 
-        result.push(Insn { variant: insn_variant, level });
+        result.push(Insn { variant: insn_variant });
     }
 
     result
@@ -94,46 +91,20 @@ pub fn blocks_from_lua(lua_blocks: LuaTable) -> Vec<Block> {
 }
 
 
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct Comment {
-    pub insn_index: u32,
-    pub comment: String,
-}
-
-pub fn comments_from_lua(lua_comments: LuaTable) -> Vec<Comment> {
-    let mut result = Vec::new();
-
-    for lua_comment in lua_comments.sequence_values::<LuaTable>() {
-        let lua_comment = lua_comment.unwrap();
-        let index = lua_comment.get::<_, u32>(1).unwrap();
-        let comment = lua_comment.get::<_, String>(2).unwrap();
-        result.push(Comment { insn_index: index, comment });
-    }
-
-    result
-}
-
-
-
 #[derive(Debug, Clone, PartialEq)]
 pub struct IR {
     pub insns: Vec<Insn>,
     pub blocks: Vec<Block>,
-    pub comments: Vec<Comment>,
 }
 
 pub fn ir_from_lua(lua_ir: LuaTable) -> IR {
     let lua_insns = lua_ir.get::<_, LuaTable>("insns").unwrap();
     let lua_blocks = lua_ir.get::<_, LuaTable>("blocks").unwrap();
-    let lua_comments = lua_ir.get::<_, LuaTable>("comments").unwrap();
     IR {
         insns: insns_from_lua(lua_insns),
         blocks: blocks_from_lua(lua_blocks),
-        comments: comments_from_lua(lua_comments)
     }
 }
-
 
 pub fn ir_to_string(ir: &IR) -> String {
     let mut result = String::new();
@@ -146,26 +117,10 @@ pub fn ir_to_string(ir: &IR) -> String {
     result.push_str("\ninsns:\n");
 
     let mut level = 0;
-    let mut comment_index = 0;
     for (i, insn) in ir.insns.iter().enumerate() {
         if let InsnVariant::Close = insn.variant { level -= 1 }
         result.push_str("    ".repeat(level).as_str());
         if let InsnVariant::Open = insn.variant { level += 1 }
-
-        if ir.comments.len() > 0 && comment_index < ir.comments.len() {
-            let comment = &ir.comments[comment_index];
-            if i == comment.insn_index as usize {
-                comment_index += 1;
-                result.push('/');
-                result.push('/');
-                result.push(' ');
-                result.push_str(comment.comment.as_str());
-                result.push('\n');
-
-                result.push_str("    ".repeat(if let InsnVariant::Open = insn.variant { level - 1 } else { level }).as_str());
-            }
-        }
-
         result.push_str(insn.variant.to_string().as_str());
         result.push('\n');
     }

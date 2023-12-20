@@ -11,11 +11,9 @@ OpCode = {
 }
 
 
-
 Insn = class "Insn"
 
 function Insn:initialize(opcode, operand)
     self.opcode = opcode
     self.operand = operand
-    self.level = 0
 end

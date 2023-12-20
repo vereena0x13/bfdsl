@@ -3,7 +3,6 @@ CodeGen = class "CodeGen"
 function CodeGen:initialize()
     self.allocator = Allocator()
     self.insns = {}
-    self.comments = {}
     self.current_block = nil
     self.pointer_offset = 0
 end
@@ -140,8 +139,4 @@ function CodeGen:at(blk)
     assert(blk:isInstanceOf(Block))
     self.current_block = blk
     self.pointer_offset = 0
-end
-
-function CodeGen:comment(s)
-    table.insert(self.comments, { #self.insns, s })
 end
